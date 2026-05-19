@@ -1,0 +1,10 @@
+{
+  "name": "Moodify",
+  "description": "An AI-powered emotion-aware music recommender system that uses NLP to detect your mood and find the perfect soundtrack on YouTube.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

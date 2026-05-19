@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "theme": { "type": "string", "enum": ["light", "dark"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Chat": {
+      "title": "Chat Message",
+      "description": "A message in the conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "message": { "type": "string" },
+        "response": { "type": "string" },
+        "sentiment": { "type": "string" },
+        "tokens": { "type": "array", "items": { "type": "string" } },
+        "spectrum": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "message", "response", "createdAt"]
+    },
+    "SongLog": {
+      "title": "Listening History",
+      "description": "Record of a recommended song",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "artist": { "type": "string" },
+        "youtubeId": { "type": "string" },
+        "mood": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User's individual profile document"
+    },
+    "/users/{userId}/chats/{chatId}": {
+      "schema": "Chat",
+      "description": "Chat messages for a specific user"
+    },
+    "/users/{userId}/history/{logId}": {
+      "schema": "SongLog",
+      "description": "Listening history for a specific user"
+    }
+  }
+}
