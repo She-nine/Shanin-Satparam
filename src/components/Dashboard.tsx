@@ -1,132 +1,208 @@
-import { User } from 'firebase/auth';
+import { useEffect, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { TrendingUp, TrendingDown, AlertTriangle, DollarSign } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Play, Flame, Heart, Volume2, Plus } from 'lucide-react';
-import { cn } from '../lib/utils';
 
-interface DashboardProps {
-  user: User;
-  onTabChange: (tab: string) => void;
-  onPlay: (song: any) => void;
-}
+export function Dashboard() {
+  const [currentPrice, setCurrentPrice] = useState(22.50);
+  const [priceData, setPriceData] = useState([
+    { time: '6:00', price: 22.10 },
+    { time: '8:00', price: 22.30 },
+    { time: '10:00', price: 22.45 },
+    { time: '12:00', price: 22.50 },
+    { time: '14:00', price: 22.55 },
+    { time: '16:00', price: 22.50 },
+  ]);
 
-export default function Dashboard({ user, onTabChange, onPlay }: DashboardProps) {
-  const songs = [
-    { title: "Midnight City", artist: "M83", mood: "Energetic", time: "4:03", img: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300", youtubeId: "dX3k_HiQ5fE" },
-    { title: "Weightless", artist: "Marconi Union", mood: "Calm", time: "8:08", img: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=300", youtubeId: "UfcAVejslrU" },
-    { title: "Glimpse of Us", artist: "Joji", mood: "Sad", time: "3:53", img: "https://images.unsplash.com/photo-1459749411177-042180ce673c?w=300", youtubeId: "FvOpPqXInF4" },
-    { title: "Levitating", artist: "Dua Lipa", mood: "Happy", time: "3:23", img: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300", youtubeId: "TUVcZfQe-Kw" },
-    { title: "Resonance", artist: "HOME", mood: "Nostalgic", time: "3:32", img: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=300", youtubeId: "8GW6sLrK40k" },
-    { title: "Breathe", artist: "Telepopmusik", mood: "Focus", time: "4:39", img: "https://images.unsplash.com/photo-1514525253361-bee8d488f762?w=300", youtubeId: "m9LpMIn97kg" },
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const variation = (Math.random() - 0.5) * 0.1;
+      setCurrentPrice(prev => Math.max(20, Math.min(25, prev + variation)));
+      
+      setPriceData(prev => {
+        const newData = [...prev];
+        newData.shift();
+        const now = new Date();
+        const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        newData.push({ time: timeStr, price: Math.max(20, Math.min(25, prev[prev.length - 1].price + variation)) });
+        return newData;
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const stats = [
+    {
+      label: 'Current Price',
+      value: `₱${currentPrice.toFixed(2)}`,
+      change: '+2.3%',
+      trend: 'up',
+      icon: DollarSign,
+      color: 'green'
+    },
+    {
+      label: 'Weekly Average',
+      value: '₱22.15',
+      change: '+1.8%',
+      trend: 'up',
+      icon: TrendingUp,
+      color: 'blue'
+    },
+    {
+      label: 'Market Volume',
+      value: '1,245 tons',
+      change: '-5.2%',
+      trend: 'down',
+      icon: TrendingDown,
+      color: 'orange'
+    },
+    {
+      label: 'Storage Alert',
+      value: 'Medium Risk',
+      change: 'Moderate',
+      trend: 'neutral',
+      icon: AlertTriangle,
+      color: 'yellow'
+    },
   ];
 
   return (
-    <div className="space-y-10 pb-10">
-      <header className="space-y-1">
-        <h2 className="text-4xl font-bold font-display tracking-tight">Good morning, {user.displayName?.split(' ')[0]}</h2>
-        <div className="flex items-center gap-2">
-           <p className="text-slate-500 dark:text-zinc-400 font-medium">Your current detected mood is</p>
-           <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">Focus</span>
-        </div>
-      </header>
-
-      <div className="grid lg:grid-cols-3 gap-8">
-        <motion.div 
-          whileHover={{ scale: 1.01 }}
-          className="lg:col-span-2 relative h-[320px] rounded-[2.5rem] overflow-hidden mood-gradient p-12 text-white shadow-2xl shadow-primary/20"
-        >
-          <div className="absolute top-12 left-12 p-3 rounded-2xl bg-white/20 backdrop-blur-md">
-            <Volume2 size={24} />
-          </div>
-          <div className="h-full flex flex-col justify-center max-w-sm space-y-4">
-             <h3 className="text-4xl font-bold font-display">How are you feeling?</h3>
-             <p className="text-white/80 font-medium text-lg leading-relaxed">
-              Chat with <span className="font-bold">Moodify AI</span> to get personalized music recommendations based on your exact emotional state right now.
-             </p>
-             <button 
-              onClick={() => onTabChange('chatbot')}
-              className="group flex items-center gap-2 text-white font-bold transition-all hover:gap-3"
-             >
-                Start a conversation 
-                <span className="w-6 h-6 flex items-center justify-center rounded-full bg-white text-black group-hover:bg-primary group-hover:text-white transition-colors">
-                  <Play size={10} fill="currentColor" />
-                </span>
-             </button>
-          </div>
-          <div className="absolute right-0 bottom-0 top-0 w-1/3 bg-gradient-to-l from-black/20 to-transparent" />
-        </motion.div>
-
-        <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 space-y-6 shadow-sm border border-slate-100 dark:border-white/5 relative overflow-hidden group">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-primary font-bold">
-               <Flame size={20} />
-               <span>Daily Mix</span>
-            </div>
-          </div>
-          
-          <div className="aspect-square w-full rounded-2xl overflow-hidden relative shadow-xl">
-             <img src="https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=500" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Daily Mix" />
-             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <button className="w-14 h-14 rounded-full mood-gradient flex items-center justify-center text-white shadow-lg">
-                  <Play size={24} fill="currentColor" />
-                </button>
-             </div>
-             <div className="absolute bottom-4 left-4 text-white">
-                <p className="font-bold text-lg">Focus & Flow</p>
-                <p className="text-xs font-medium text-white/70">Based on your morning routine</p>
-             </div>
-          </div>
-        </div>
-      </div>
-
-      <section className="space-y-6">
+    <div className="space-y-6">
+      {/* Live Price Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-xl"
+      >
         <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-bold font-display tracking-tight">Made For You Today</h3>
-          <button onClick={() => onTabChange('discover')} className="text-sm font-bold text-primary hover:underline">View all</button>
+          <div>
+            <p className="text-green-100 text-sm">Real-Time Rice Price (per kg)</p>
+            <h2 className="text-5xl mt-2">₱{currentPrice.toFixed(2)}</h2>
+            <p className="text-green-100 mt-2">Last updated: just now</p>
+          </div>
+          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+            <TrendingUp className="w-5 h-5" />
+            <span>+2.3% today</span>
+          </div>
         </div>
+      </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          {songs.map((song, i) => (
-            <motion.div 
-              key={i}
-              whileHover={{ y: -5 }}
-              className="space-y-3 group"
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white rounded-xl p-5 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow"
             >
-              <div className="aspect-square rounded-[2rem] overflow-hidden relative shadow-lg">
-                <img src={song.img} alt={song.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                   <button 
-                    onClick={() => onPlay(song)}
-                    className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-md hover:scale-110 transition-transform"
-                   >
-                     <Play size={16} fill="currentColor" />
-                   </button>
-                   <button className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center shadow-md">
-                     <Plus size={16} />
-                   </button>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-gray-500 text-sm">{stat.label}</p>
+                  <h3 className="text-2xl mt-2 text-gray-900">{stat.value}</h3>
+                  <p className={`text-sm mt-2 ${
+                    stat.trend === 'up' ? 'text-green-600' : 
+                    stat.trend === 'down' ? 'text-red-600' : 
+                    'text-yellow-600'
+                  }`}>
+                    {stat.change}
+                  </p>
                 </div>
-              </div>
-              <div>
-                <p className="font-bold truncate">{song.title}</p>
-                <p className="text-xs text-slate-500 dark:text-zinc-500 font-medium">{song.artist}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className={cn(
-                    "text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider",
-                    song.mood === 'Energetic' && "bg-orange-500/10 text-orange-500",
-                    song.mood === 'Calm' && "bg-blue-500/10 text-blue-500",
-                    song.mood === 'Sad' && "bg-slate-500/10 text-slate-500",
-                    song.mood === 'Happy' && "bg-emerald-500/10 text-emerald-500",
-                    song.mood === 'Nostalgic' && "bg-purple-500/10 text-purple-500",
-                    song.mood === 'Focus' && "bg-primary/10 text-primary",
-                  )}>
-                    {song.mood}
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-400">{song.time}</span>
+                <div className={`p-3 rounded-lg ${
+                  stat.color === 'green' ? 'bg-green-100' :
+                  stat.color === 'blue' ? 'bg-blue-100' :
+                  stat.color === 'orange' ? 'bg-orange-100' :
+                  'bg-yellow-100'
+                }`}>
+                  <Icon className={`w-6 h-6 ${
+                    stat.color === 'green' ? 'text-green-600' :
+                    stat.color === 'blue' ? 'text-blue-600' :
+                    stat.color === 'orange' ? 'text-orange-600' :
+                    'text-yellow-600'
+                  }`} />
                 </div>
               </div>
             </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Live Price Chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+      >
+        <h3 className="text-xl mb-4 text-gray-900">Live Price Movement</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <AreaChart data={priceData}>
+            <defs>
+              <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="time" stroke="#9ca3af" />
+            <YAxis domain={[20, 25]} stroke="#9ca3af" />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: '#fff', 
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+              }}
+            />
+            <Area 
+              type="monotone" 
+              dataKey="price" 
+              stroke="#10b981" 
+              strokeWidth={3}
+              fill="url(#colorPrice)" 
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </motion.div>
+
+      {/* Regional Prices */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+      >
+        <h3 className="text-xl mb-4 text-gray-900">Albay Regional Prices</h3>
+        <div className="space-y-3">
+          {[
+            { location: 'Libon Public Market', price: 23.50, trend: 'up', volume: 'High' },
+            { location: 'Legazpi City Market', price: 22.80, trend: 'up', volume: 'Very High' },
+            { location: 'Tabaco Market', price: 22.20, trend: 'down', volume: 'Medium' },
+            { location: 'Ligao City Market', price: 22.50, trend: 'neutral', volume: 'Medium' },
+            { location: 'Polangui Market', price: 21.90, trend: 'down', volume: 'Low' },
+          ].map((market, index) => (
+            <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <div className="flex-1">
+                <p className="text-gray-900">{market.location}</p>
+                <p className="text-sm text-gray-500">Volume: {market.volume}</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-xl text-gray-900">₱{market.price.toFixed(2)}</p>
+                  <p className="text-sm text-gray-500">per kg</p>
+                </div>
+                {market.trend === 'up' && <TrendingUp className="w-5 h-5 text-green-600" />}
+                {market.trend === 'down' && <TrendingDown className="w-5 h-5 text-red-600" />}
+                {market.trend === 'neutral' && <div className="w-5 h-0.5 bg-gray-400"></div>}
+              </div>
+            </div>
           ))}
         </div>
-      </section>
+      </motion.div>
     </div>
   );
 }
